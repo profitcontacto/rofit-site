@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Inversión | Profit Inversiones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --profit-gold: #C5A059;
+            --profit-gold-dark: #A68546;
+            --profit-off-white: #FDFBF7;
+            --profit-navy: #002147;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--profit-off-white); color: #1a1a1a; }
+        h1, h2 { font-family: 'Cormorant Garamond', serif; }
+        .bg-profit-gold { background-color: var(--profit-gold); }
+        .text-profit-gold { color: var(--profit-gold); }
+        .border-profit-gold { border-color: var(--profit-gold); }
+        input[type="range"] { accent-color: var(--profit-gold); }
+        .custom-input:focus { border-color: var(--profit-gold); }
+        input:focus { outline: none; border-color: var(--profit-gold) !important; box-shadow: 0 0 0 2px rgba(197,160,89,0.15); }
+        input.input-error { border-color: #ef4444 !important; background-color: #fef2f2; }
+        .carga-verde { color: #16a34a; }
+        .carga-amarillo { color: #d97706; }
+        .carga-rojo { color: #dc2626; }
+        .dot-verde { background-color: #16a34a; }
+        .dot-amarillo { background-color: #d97706; }
+        .dot-rojo { background-color: #dc2626; }
+        .error-msg { font-size: 10px; color: #ef4444; margin-top: 3px; display: none; }
+        .error-msg.visible { display: block; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden border border-gray-100">
+        <!-- Header -->
+        <div class="bg-profit-gold p-8 text-white text-center">
+            <h1 class="text-4xl md:text-5xl mb-2">Simulador de Capacidad</h1>
+            <p class="opacity-90 font-light tracking-widest uppercase text-xs">Cálculo Hipotecario Inverso • Estilo Corporativo</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12">
+            <!-- Inputs Panel -->
+            <div class="lg:col-span-5 p-8 bg-[#F9F6F0] border-r border-gray-200">
+                <h3 class="text-profit-gold font-semibold mb-6 uppercase text-xs tracking-widest border-b border-profit-gold pb-2 inline-block">Configuración</h3>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] font-bold mb-1 uppercase text-gray-500">Sueldo Líquido Mensual (CLP)</label>
+                        <input type="number" id="ingreso" value="2500000" min="1" class="w-full p-3 border border-gray-300 rounded transition-all">
+                        <p class="error-msg" id="err-ingreso">Ingresa un sueldo válido mayor a 0.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold mb-1 uppercase text-gray-500">% Dividendo</label>
+                            <input type="number" id="pctDividendo" value="25" min="1" max="60" class="w-full p-3 border border-gray-300 rounded transition-all">
+                            <p class="error-msg" id="err-pctDividendo">Debe estar entre 1% y 60%.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold mb-1 uppercase text-gray-500">Plazo (Años)</label>
+                            <input type="number" id="plazo" value="25" min="1" max="40" class="w-full p-3 border border-gray-300 rounded transition-all">
+                            <p class="error-msg" id="err-plazo">Debe estar entre 1 y 40 años.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold mb-1 uppercase text-gray-500">Tasa Anual (%)</label>
+                            <input type="number" id="tasa" value="4.5" min="0.1" max="30" step="0.1" class="w-full p-3 border border-gray-300 rounded transition-all">
+                            <p class="error-msg" id="err-tasa">Debe estar entre 0.1% y 30%.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold mb-1 uppercase text-gray-500">Pie (%)</label>
+                            <input type="number" id="piePct" value="20" min="1" max="99" class="w-full p-3 border border-gray-300 rounded transition-all">
+                            <p class="error-msg" id="err-piePct">Debe estar entre 1% y 99%.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold mb-1 uppercase text-gray-500">Valor UF Referencial ($)</label>
+                        <input type="number" id="valorUf" value="40290" min="1" class="w-full p-3 border border-gray-300 rounded transition-all">
+                        <p class="error-msg" id="err-valorUf">Ingresa un valor de UF válido.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="lg:col-span-7 p-8 flex flex-col justify-center bg-white">
+                <div class="text-center mb-10">
+                    <span class="text-gray-400 text-[10px] uppercase tracking-[0.2em]">Máxima Capacidad de Compra</span>
+                    <div id="propiedadMax" class="text-6xl md:text-7xl font-bold text-profit-gold my-4">UF 0</div>
+                    <div class="flex flex-wrap justify-center gap-3 mt-4">
+                        <span id="rangoConservador" class="bg-gray-100 text-gray-600 px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider">Conservador: UF --</span>
+                        <span class="bg-[#F9F6F0] text-profit-gold border border-profit-gold px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider">Perfil Inversionista</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-100 pt-10">
+                    <div>
+                        <p class="text-gray-400 text-[9px] uppercase tracking-widest mb-1">Crédito Hipotecario</p>
+                        <p id="creditoUf" class="text-2xl font-semibold text-gray-800">UF 0</p>
+                        <div class="h-0.5 w-8 bg-profit-gold mt-1"></div>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-[9px] uppercase tracking-widest mb-1">Dividendo Sugerido</p>
+                        <p id="dividendoUf" class="text-2xl font-semibold text-gray-800">UF 0</p>
+                        <p id="dividendoClp" class="text-xs text-profit-gold font-medium mt-1">$0 CLP</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-[9px] uppercase tracking-widest mb-1">Pie Inicial (Cash)</p>
+                        <p id="pieUf" class="text-2xl font-semibold text-gray-800">UF 0</p>
+                        <p id="pieClp" class="text-xs text-profit-gold font-medium mt-1">$0 CLP</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-[9px] uppercase tracking-widest mb-1">Carga Financiera</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div id="cargaDot" class="w-3 h-3 rounded-full dot-verde flex-shrink-0"></div>
+                            <p id="cargaLabel" class="text-sm font-semibold carga-verde">Perfil Calificado</p>
+                        </div>
+                        <p id="cargaDesc" class="text-[10px] text-gray-400 mt-1">Dividendo bajo el 25% del ingreso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest">© 2026 Profit Inversiones | Análisis de Mercado en Tiempo Real</p>
+        </div>
+    </div>
+
+    <script>
+        const validations = {
+            ingreso:      { min: 1,   max: Infinity, msg: 'Ingresa un sueldo válido mayor a 0.' },
+            pctDividendo: { min: 1,   max: 60,       msg: 'Debe estar entre 1% y 60%.' },
+            plazo:        { min: 1,   max: 40,       msg: 'Debe estar entre 1 y 40 años.' },
+            tasa:         { min: 0.1, max: 30,       msg: 'Debe estar entre 0.1% y 30%.' },
+            piePct:       { min: 1,   max: 99,       msg: 'Debe estar entre 1% y 99%.' },
+            valorUf:      { min: 1,   max: Infinity, msg: 'Ingresa un valor de UF válido.' },
+        };
+
+        function validateField(id) {
+            const val = parseFloat(document.getElementById(id).value);
+            const v = validations[id];
+            const input = document.getElementById(id);
+            const errEl = document.getElementById('err-' + id);
+            if (!val || val < v.min || val > v.max) {
+                input.classList.add('input-error');
+                if (errEl) errEl.classList.add('visible');
+                return false;
+            }
+            input.classList.remove('input-error');
+            if (errEl) errEl.classList.remove('visible');
+            return true;
+        }
+
+        function calcular() {
+            const ids = Object.keys(validations);
+            let allValid = true;
+            ids.forEach(id => { if (!validateField(id)) allValid = false; });
+            if (!allValid) return;
+
+            const sueldo    = parseFloat(document.getElementById('ingreso').value);
+            const pctDiv    = parseFloat(document.getElementById('pctDividendo').value) / 100;
+            const años      = parseInt(document.getElementById('plazo').value);
+            const tasaAnual = parseFloat(document.getElementById('tasa').value) / 100;
+            const piePct    = parseFloat(document.getElementById('piePct').value) / 100;
+            const uf        = parseFloat(document.getElementById('valorUf').value);
+
+            const divMaxClp    = sueldo * pctDiv;
+            const divMaxUf     = divMaxClp / uf;
+            const tasaMensual  = Math.pow(1 + tasaAnual, 1/12) - 1;
+            const n            = años * 12;
+            const factor       = (1 - Math.pow(1 + tasaMensual, -n)) / tasaMensual;
+            const montoCreditoUf    = divMaxUf * factor;
+            const valorPropiedadUf  = montoCreditoUf / (1 - piePct);
+            const pieTotalUf        = valorPropiedadUf * piePct;
+
+            // Conservador +1%
+            const tasaCons        = tasaAnual + 0.01;
+            const tasaMensualCons = Math.pow(1 + tasaCons, 1/12) - 1;
+            const factorCons      = (1 - Math.pow(1 + tasaMensualCons, -n)) / tasaMensualCons;
+            const propiedadCons   = (divMaxUf * factorCons) / (1 - piePct);
+
+            // Carga financiera real
+            const cargaReal = pctDiv * 100;
+            const dot   = document.getElementById('cargaDot');
+            const label = document.getElementById('cargaLabel');
+            const desc  = document.getElementById('cargaDesc');
+            dot.className   = 'w-3 h-3 rounded-full flex-shrink-0';
+            label.className = 'text-sm font-semibold';
+
+            if (cargaReal <= 25) {
+                dot.classList.add('dot-verde');
+                label.classList.add('carga-verde');
+                label.textContent = 'Perfil Calificado';
+                desc.textContent  = `Dividendo en ${cargaReal}% del ingreso — carga saludable.`;
+            } else if (cargaReal <= 30) {
+                dot.classList.add('dot-amarillo');
+                label.classList.add('carga-amarillo');
+                label.textContent = 'Carga Moderada';
+                desc.textContent  = `Dividendo en ${cargaReal}% del ingreso — dentro del límite bancario.`;
+            } else {
+                dot.classList.add('dot-rojo');
+                label.classList.add('carga-rojo');
+                label.textContent = 'Carga Alta';
+                desc.textContent  = `Dividendo en ${cargaReal}% del ingreso — puede dificultar aprobación.`;
+            }
+
+            // Actualizar UI
+            const fmt = n => n.toLocaleString('de-DE', { maximumFractionDigits: 0 });
+            const fmt1 = n => n.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+            const fmt2 = n => n.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+            const fmtClp = n => '$' + Math.round(n).toLocaleString('es-CL') + ' CLP';
+
+            document.getElementById('propiedadMax').textContent   = `UF ${fmt(valorPropiedadUf)}`;
+            document.getElementById('creditoUf').textContent      = `UF ${fmt1(montoCreditoUf)}`;
+            document.getElementById('dividendoUf').textContent    = `UF ${fmt2(divMaxUf)}`;
+            document.getElementById('dividendoClp').textContent   = fmtClp(divMaxClp);
+            document.getElementById('pieUf').textContent          = `UF ${fmt1(pieTotalUf)}`;
+            document.getElementById('pieClp').textContent         = fmtClp(pieTotalUf * uf);
+            document.getElementById('rangoConservador').textContent = `Conservador (+1%): UF ${fmt(propiedadCons)}`;
+        }
+
+        Object.keys(validations).forEach(id => {
+            document.getElementById(id).addEventListener('input', calcular);
+        });
+
+        window.onload = calcular;
+    </script>
+</body>
+</html>
