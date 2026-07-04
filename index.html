@@ -2065,18 +2065,21 @@ document.getElementById('btn-submit').addEventListener('click', async function (
     });
     document.getElementById('recaptcha-token').value = recaptchaToken;
 
-    const payload = {
-      nombre,
-      apellido,
-      rut,
-      email,
-      telefono,
-      renta,
-      ahorros,
-      etapa,
-      recaptcha_token: recaptchaToken,
-      fecha: new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })
-    };
+const eventId = 'lead-' + rut.replace(/[^0-9kK]/g, '') + '-' + Date.now();
+
+const payload = {
+  nombre,
+  apellido,
+  rut,
+  email,
+  telefono,
+  renta,
+  ahorros,
+  etapa,
+  recaptcha_token: recaptchaToken,
+  fecha: new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' }),
+  event_id: eventId
+};
 
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
@@ -2088,7 +2091,10 @@ document.getElementById('btn-submit').addEventListener('click', async function (
     });
 
     if (response.ok) {
-      btn.textContent = '✓ ¡Solicitud enviada!';
+  fbq('track', 'Lead', {
+    content_name: etapa
+  }, { eventID: eventId });
+  btn.textContent = '✓ ¡Solicitud enviada!';
       btn.style.background = '#2a5a2a';
       btn.style.letterSpacing = '2px';
 
